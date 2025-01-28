@@ -1,0 +1,107 @@
+<div id="currency-widget">
+    <h3>ЦБ Курсы валют</h3>
+    <ul id="currency-rates"></ul>
+    <button id="refresh-button">Обновить</button>
+</div>
+
+<script>
+    function fetchCurrencyRates() {
+        fetch('/api/currency')
+            .then(response => response.json())
+            .then(data => {
+                const currencyList = document.getElementById('currency-rates');
+                while (currencyList.firstChild) {
+                    currencyList.removeChild(currencyList.firstChild);
+                }
+
+                data.forEach(rate => {
+                    const listItem = document.createElement('li');
+                    const currentRate = parseFloat(rate.rate);
+
+                    let change = '';
+                    let changeClass = '';
+
+                    if (rate.trend === 'up') {
+                        change = '▲';
+                        changeClass = 'up';
+                    } else if (rate.trend === 'down') {
+                        change = '▼';
+                        changeClass = 'down';
+                    }
+
+                    listItem.innerHTML = `${rate.currencyCode}: ${currentRate} ${change ? `<span>(${change})</span>` : ''}`;
+
+                    if (changeClass) {
+                        listItem.classList.add(changeClass);
+                    }
+
+                    currencyList.appendChild(listItem);
+                });
+            })
+            .catch(error => console.error('Ошибка загрузки курсов валют:', error));
+    }
+
+    function refreshCurrencyRates() {
+        fetch('/api/refresh-currency', { method: 'POST' })
+            .then(() => {
+                fetchCurrencyRates();
+            })
+            .catch(error => console.error('Ошибка обновления курсов валют:', error));
+    }
+
+    document.getElementById('refresh-button').addEventListener('click', refreshCurrencyRates);
+
+    setInterval(fetchCurrencyRates, 86400000);
+    fetchCurrencyRates();
+</script>
+
+<style>
+    #currency-widget {
+        font-family: Arial, sans-serif;
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: #f9f9f9;
+    }
+
+    h3 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    li {
+        margin: 10px 0;
+        font-size: 16px;
+    }
+
+    .up {
+        color: green;
+    }
+
+    .down {
+        color: red;
+    }
+
+    button {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        margin-top: 20px;
+        font-size: 16px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #45a049;
+    }
+</style>

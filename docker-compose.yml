@@ -1,0 +1,61 @@
+services:
+  nginx-symfony:
+    container_name: nginx-symfony
+    image: nginx:1.24
+    restart: no
+    volumes:
+      - .:/var/www/
+      - ./.docker/config/nginx/:/etc/nginx/conf.d/
+      - ./.docker/logs/nginx:/var/log/nginx/
+    ports:
+      - "80:80"
+    networks:
+      - web-symfony
+
+  php-symfony:
+    image: ${IMAGE}:${VERSION}
+    build:
+      context: ./.docker/
+    container_name: php-symfony
+    restart: no
+    working_dir: /var/www
+    volumes:
+      - .:/var/www/
+    networks:
+      - web-symfony
+
+  redis-symfony:
+    container_name: redis-symfony
+    image: redis:7.4.0-alpine
+    restart: no
+    ports:
+      - "6379:6379"
+    networks:
+      - web-symfony
+
+  db-symfony:
+    container_name: db-symfony
+    image: mysql:8.4.3
+    restart: no
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: local
+      MYSQL_DATABASE: task
+      MYSQL_USER: task
+      MYSQL_PASSWORD: task
+    security_opt:
+      - seccomp:unconfined
+    volumes:
+      - database-symfony:/var/lib/mysql
+    networks:
+      - web-symfony
+
+volumes:
+  database-symfony:
+    name: database-symfony
+
+networks:
+  web-symfony:
+    name: web-symfony
+    driver: bridge
