@@ -56,7 +56,7 @@ class CurrencyController extends AbstractController
     /**
      * @throws InvalidArgumentException
      */
-    #[Route('/currency', name: 'my_page')]
+    #[Route('/', name: 'my_page')]
     public function myPage(): Response
     {
         $currencyRates = $this->cache->get('currency_rates_page', function (ItemInterface $item) {
